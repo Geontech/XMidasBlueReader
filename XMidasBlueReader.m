@@ -172,7 +172,7 @@ classdef XMidasBlueReader < handle
             hcb.pipesize = fread(fid, 1, 'int32');
             hcb.in_byte = fread(fid, 1, 'double');
             hcb.out_byte = fread(fid, 1, 'double');
-            hcb.outbytes = fread(fid, 8, '8*double', 8); % 8x8 byte values
+            hcb.outbytes = fread(fid, 8, 'double'); % 8 8 byte values
             hcb.keylength = fread(fid, 1, 'int32');
             hcb.keywords = fread(fid, 92, '*char')'; % 92 1-byte values
 
