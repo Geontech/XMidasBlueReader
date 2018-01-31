@@ -214,24 +214,23 @@ classdef XMidasBlueReader < handle
                     'lext', fread(fid, 1, 'int16'),...  % 2 bytes
                     'ltag', fread(fid, 1, 'int8'), ...  % 1 byte
                     'type', fread(fid, 1, '*char'), ... % 1 Byte
-                    'value', 0, 'tag', '');
+                    'value', 0, ... % Variable, lkey-lext * sizeof(type)
+                    'tag', '');     % Variable, ltag bytes
                 
                 [valType, valTypeBytes] = XMidasBlueReader.FormatType(key.type);
-                valCount = key.lkey - key.lext;
+                valCount = (key.lkey - key.lext) / valTypeBytes;
                 key.value = fread(fid, valCount, valType)';
                 key.tag = fread(fid, key.ltag, '*char')';
                 
-                % Calculate total number of bytes for the key
-                total = 4 + 2 + 1 + 1 + (valCount * valTypeBytes) + key.ltag;
-                
-                % Remainder to get on an 8-byte boundary
-                remainder = 8 - rem(total,8);
+                % Calculate remainder for 8-byte boundary
+                total = 4 + 2 + 1 + 1 + (key.lkey - key.lext) + key.ltag;
+                remainder = 8 - rem(total, 8);
                 if remainder > 0
                     fseek(fid, remainder, 'cof');
                 end
                 
                 % Subtract from bytes remaining and add to keywords
-                bytesRemaining = bytesRemaining - total - remainder;
+                bytesRemaining = bytesRemaining - key.lkey;
                 ext_header = [ext_header, key];
             end
         end
