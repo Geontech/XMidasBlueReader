@@ -101,6 +101,47 @@ classdef XMidasBlueReader < handle
             %    Moves data read pointer to the start of data.
             obj.dataOffset = obj.hcb.data_start;
         end
+        
+        function rewind(obj, numSamples)
+            %REWIND Move the data playback backwards.
+            %   Changes the data offset to go back an appropriate number
+            %   of bytes based on the data information in header.
+            
+            % Treat no argument as shorthand for fully rewind.
+            if nargin < 1
+                obj.resetRead();
+                return
+            end
+            
+            % If already rewound, no reason to do anything.
+            if obj.dataOffset == obj.hcb.data_start
+                return;
+            end
+            
+            % Convert format size to number of elements per sample
+            elementsPerSample = XMidasBlueReader.FormatSize(obj.hcb.format(1));
+            % Convert format type to the type string and size (bytes)
+            [~, elementPrecisionBytes] = XMidasBlueReader.FormatType(obj.hcb.format(2));
+            bytesPerSample = elementPrecisionBytes * prod(elementsPerSample);
+            
+            % Move backwards stopping at the data 
+            moveBytes = bytesPerSample * numSamples;
+            obj.dataOffset = max([obj.dataOffset - moveBytes, obj.hcb.data_start]);
+        end
+        
+        function b = begin(obj)
+            %BEGIN Returns true if at beginning of data
+            %    Returns true if the internal data pointer is at the
+            %    beginning of the data according to the header.
+            b = obj.dataOffset == obj.hcb.data_start;
+        end
+        
+        function f = end(obj)
+            %END Returns true if at the end of the data
+            %    Returns true if the internal data pointer is at the
+            %    end of the data according to the header.
+            f = obj.dataOffset == (obj.hcb.data_start + obj.hcb.data_size);
+        end
     end
     
     methods(Static)
