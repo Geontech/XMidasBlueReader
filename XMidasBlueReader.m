@@ -63,7 +63,7 @@ classdef XMidasBlueReader < handle
                 % Reformats 'char' to '8*char' if there are 8 elements per
                 % sample, for example.
                 elementPrecisionEffectiveType = sprintf(...
-                    '%d*%s', prod(elementsPerSample), precision_type);
+                    '%d*%s', prod(elementsPerSample), elementPrecisionType);
             end
             
             % Move read position.
@@ -84,11 +84,11 @@ classdef XMidasBlueReader < handle
                         ));
             end
 
-            % Read and move read pointer
-            if prod(elementsPerSample) == 1
-                samples = fread(fid, numSamples, elementPrecisionEffectiveType);
-            else
-                samples = fread(fid, numSamples, elementPrecisionEffectiveType, elementPrecisionBytes);
+            % Read and move read pointer'
+            samples = fread(fid, [elementsPerSample, numSamples], elementPrecisionEffectiveType);
+            if obj.hcb.format(1) == 'C'
+                % Reformat if complex data
+                samples = complex(samples(1,:), samples(2,:));
             end
             obj.dataOffset = obj.dataOffset + (bytesPerSample * numSamples);
             
